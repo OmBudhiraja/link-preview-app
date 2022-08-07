@@ -22,7 +22,7 @@ const PreviewCard: React.FC<{ data: { [key: string]: string } }> = ({ data }) =>
           />
         </figure>
         <div className="card-body pt-2 gap-1">
-          <span className="text-sm text-gray-400 line-clamp-1">{data.url}</span>
+          <span className="text-sm text-gray-400 line-clamp-1">{data.site_name || data.url}</span>
           <h2 className="card-title line-clamp-1">{data.title ?? ''}</h2>
           <p className="text-sm text-gray-300 line-clamp-2">{data.description ?? ''}</p>
         </div>
