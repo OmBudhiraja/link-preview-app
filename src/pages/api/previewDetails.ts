@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import * as cheerio from 'cheerio';
 import { isValidUrl } from '../../util/isValidUrl';
+import axios from 'axios';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { url } = req.query;
@@ -10,15 +11,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    let contentType: string | null;
+    let contentType: string | undefined;
 
-    const urlResponse = await fetch(url);
-    const data = await urlResponse.text();
-    contentType = urlResponse.headers.get('content-type');
+    const { data, headers } = await axios(url);
+    contentType = headers['content-type'];
 
-    console.log(urlResponse);
-
-    if (contentType && contentType.includes('text/html')) {
+    if (contentType?.includes('text/html')) {
       const $ = cheerio.load(data);
 
       const metaTags = $('meta');
@@ -42,7 +40,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (!result.image) {
-        console.log($('link[rel="icon"]').get(1));
         result.image = $('link[rel="icon"]').last().attr('href') ?? '';
       }
 
@@ -57,6 +54,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (err) {
     console.log('something broke', err);
 
-    res.status(400).json({ error: 'Could not fetch any data from URL' });
+    res.status(500).json({ error: 'Could not fetch any data from URL' });
   }
 }

@@ -5,6 +5,7 @@ import Head from 'next/head';
 import { useState } from 'react';
 import { ImSpinner9 as LoadingSpinner } from 'react-icons/im';
 import { isValidUrl } from '../util/isValidUrl';
+import axios, { AxiosError } from 'axios';
 
 const placeholderImage =
   'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png';
@@ -12,13 +13,13 @@ const PreviewCard: React.FC<{ data: { [key: string]: string } }> = ({ data }) =>
   return (
     <a href={data.url} target="_blank" rel="noreferrer">
       <div className="card card-compact w-96 bg-base-100 shadow-xl transition-colors hover:bg-gray-700">
-        <figure className="h-[250px] w-96 border-b-[1px] border-gray-500 ">
+        <figure className="h-[250px] w-96 border-b-[1px] border-gray-500 bg-slate-700">
           <img
             src={data.image || placeholderImage}
             alt="Shoes"
             height={250}
             width={384}
-            className="object-cover h-full w-full"
+            className="object-contain h-full w-full"
           />
         </figure>
         <div className="card-body pt-2 gap-1">
@@ -50,17 +51,17 @@ const Home: NextPage = () => {
       setError(null);
       setData(null);
       setFetching(true);
-      const res = await fetch(`/api/previewDetails?url=${url}`);
-      const data = await res.json();
-      setFetching(false);
-      if (res.status === 200) {
-        setUrl('');
-        setData(data);
-      } else {
-        setError(data.error);
-      }
+      const { data, status } = await axios(`/api/previewDetails?url=${url}`);
+      setUrl('');
+      setData(data);
     } catch (err) {
-      setError('Something went wrong. Try Again!');
+      if (err instanceof AxiosError) {
+        setError(err.response?.data.error);
+      } else {
+        setError('Something went wrong. Try Again!');
+      }
+    } finally {
+      setFetching(false);
     }
   };
   return (
